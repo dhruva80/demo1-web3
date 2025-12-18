@@ -1,0 +1,38 @@
+name: demo1-web deployment
+
+on:
+  push:
+    branches:
+      - main # Change this if you're using a different branch
+
+jobs:
+  sync-s3-to-github:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Configure AWS CLI
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1 # Change this to your S3 bucket's region
+
+      - name: Sync S3 bucket to local directory
+        run: |
+          mkdir s3-files
+          aws s3 sync s3://demo1-demo3-demo5-web15/ s3-files/
+        # Replace 'your-bucket-name' and 's3-prefix/' with your actual bucket name and prefix path
+
+      - name: Commit and push files to GitHub
+        run: |
+          git config --local user.email "you@example.com" # Set your email
+          git config --local user.name "Your Name" # Set your name
+          git add s3-files/
+          git commit -m "Sync S3 files to GitHub"
+          git push origin main # Change 'main' if you're using a different branch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
